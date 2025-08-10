@@ -1,11 +1,14 @@
 package com.jotadev.br.FinanceAPP.controller;
 
+import com.jotadev.br.FinanceAPP.dto.AuthDTO;
 import com.jotadev.br.FinanceAPP.dto.ProfileDTO;
 import com.jotadev.br.FinanceAPP.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,4 +32,19 @@ public class ProfileController {
         }
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> loginProfile(@RequestBody AuthDTO authDTO) {
+    try {
+            if(!profileService.isAccountActive(authDTO.getEmail())){
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of(
+                                "message: ", "Account is not active. Please activate your account first."));
+            }
+            Map<String, Object> response = profileService.authenticateAndGenerateToken(authDTO);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                    "error", e.getMessage()));
+        }
+    }
 }
